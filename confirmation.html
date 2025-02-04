@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirmação de Participação - Paiva Prêmios</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            text-align: center;
+            padding: 50px;
+        }
+        .numbers-container {
+            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .number-box {
+            background-color: #008000;
+            color: white;
+            font-size: 14px;
+            width: 50px;
+            height: 50px;
+            margin: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 5px;
+        }
+        .thank-you-message {
+            font-size: 20px;
+            color: #333;
+            margin-top: 30px;
+            font-weight: bold;
+        }
+        .home-button {
+            display: block;
+            margin: 0 auto 20px auto;
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            width: 200px;
+            text-align: center;
+        }
+        .home-button:hover {
+            background-color: #0056b3;
+        }
+        .download-button {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+            width: 200px;
+        }
+        .download-button:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+
+<a href="index.html" class="home-button">Página Inicial</a>
+
+<h1>BOA SORTE, VOCÊ PODE SER O PRÓXIMO GANHADOR!</h1>
+
+<p><strong>Nome:</strong> <span id="userName"></span></p>
+<p><strong>Telefone:</strong> <span id="userPhone"></span></p>
+<p><strong>E-mail:</strong> <span id="userEmail"></span></p>
+
+<p><strong>Números Escolhidos:</strong></p>
+<div class="numbers-container" id="numbersContainer"></div>
+
+<p class="thank-you-message">Obrigado por participar! Boa sorte!</p>
+
+<button class="download-button" onclick="downloadPDF()">Baixar Comprovante (PDF)</button>
+
+<script>
+    let fullName = localStorage.getItem('fullName') || "Não informado";
+    let phone = localStorage.getItem('phone') || "Não informado";
+    let email = localStorage.getItem('email') || "Não informado";
+    let selectedNumbers = JSON.parse(localStorage.getItem('selectedNumbers')) || [];
+    let prizeImage = "http://localhost/paivapremios/wp-content/themes/paivapremios/images/rifa3.jpg"; // URL da imagem
+
+    document.getElementById('userName').textContent = fullName;
+    document.getElementById('userPhone').textContent = phone;
+    document.getElementById('userEmail').textContent = email;
+
+    let numbersContainer = document.getElementById('numbersContainer');
+    if (selectedNumbers.length > 0) {
+        selectedNumbers.forEach(function(number) {
+            let numberBox = document.createElement('div');
+            numberBox.classList.add('number-box');
+            numberBox.textContent = number;
+            numbersContainer.appendChild(numberBox);
+        });
+    } else {
+        numbersContainer.innerHTML = "<p>Nenhum número selecionado.</p>";
+    }
+
+    function downloadPDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        // Definir o texto principal do PDF
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(18);
+        doc.text("Comprovante de Participação - Paiva Prêmios", 15, 20);
+
+        doc.setFontSize(14);
+        doc.setFont("helvetica", "normal");
+        doc.text(`Nome: ${fullName}`, 15, 40);
+        doc.text(`Telefone: ${phone}`, 15, 50);
+        doc.text(`E-mail: ${email}`, 15, 60);
+        doc.text("Números Escolhidos:", 15, 80);
+
+        let yOffset = 90;
+        selectedNumbers.forEach((num, index) => {
+            doc.setFillColor(0, 128, 0);
+            doc.rect(15 + (index % 5) * 30, yOffset, 25, 10, "F");
+            doc.setTextColor(255, 255, 255);
+            doc.text(`${num}`, 22 + (index % 5) * 30, yOffset + 7);
+            if ((index + 1) % 5 === 0) {
+                yOffset += 15;
+            }
+        });
+
+        doc.setTextColor(0, 0, 0);
+        doc.text("Obrigado por participar! Boa sorte!", 15, yOffset + 20);
+
+        // Adicionar a imagem ao PDF
+        doc.addImage(prizeImage, "JPEG", 120, yOffset + 25, 70, 70); // Ajuste a posição e o tamanho da imagem
+
+        // Salvar o PDF
+        doc.save("Comprovante_Participacao.pdf");
+    }
+</script>
+
+</body>
+</html>

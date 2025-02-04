@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pagamento - Paiva Prêmios</title>
+    <script src="https://sdk.mercadopago.com/js/v2"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            text-align: center;
+            padding: 0;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .button {
+            padding: 10px 18px;
+            font-size: 14px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            color: white;
+        }
+        .button-green {
+            background-color: #008000;
+        }
+        .button-green:hover {
+            background-color: #006400;
+        }
+        .button-blue {
+            background-color: #007BFF;
+        }
+        .button-blue:hover {
+            background-color: #0056b3;
+        }
+        .back-container {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+        }
+        .form-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .form-container input, .form-container select {
+            padding: 8px;
+            font-size: 14px;
+            width: 350px;
+            margin: 5px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        .payment-section {
+            display: none;
+        }
+        #pixQR, #pixCode {
+            display: none;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="back-container">
+    <button class="button button-blue" onclick="window.location.href='index.html'">Voltar</button>
+</div>
+
+<h1>Pagamento - Paiva Prêmios</h1>
+
+<div class="form-container">
+    <input type="text" id="fullName" placeholder="Nome Completo" required>
+    <input type="tel" id="phone" placeholder="Telefone (xx)xxxxx-xxxx" required>
+    <input type="email" id="email" placeholder="Endereço de E-mail" required>
+    
+    <select id="paymentMethod" onchange="togglePaymentFields()">
+        <option value="">Selecione o Método de Pagamento</option>
+        <option value="pix">Pix</option>
+        <option value="credit">Cartão de Crédito</option>
+    </select>
+
+    <div id="pixSection" class="payment-section">
+        <button class="button button-green" onclick="generatePix()">Gerar QR Code Pix</button>
+        <img id="pixQR" src="" alt="QR Code Pix">
+        <p id="pixCode"></p>
+    </div>
+
+    <div id="creditSection" class="payment-section">
+        <input type="text" id="cardName" placeholder="Nome no Cartão">
+        <input type="text" id="cardNumber" placeholder="Número do Cartão">
+        <input type="text" id="cardExpiry" placeholder="Validade (MM/AA)">
+        <input type="text" id="cardCVV" placeholder="CVV">
+    </div>
+
+    <button class="button button-green" onclick="confirmPayment()">Confirmar Pagamento</button>
+</div>
+
+<script>
+    function togglePaymentFields() {
+        let method = document.getElementById('paymentMethod').value;
+        document.getElementById('pixSection').style.display = method === 'pix' ? 'block' : 'none';
+        document.getElementById('creditSection').style.display = method === 'credit' ? 'block' : 'none';
+    }
+
+    function generatePix() {
+        fetch('https://api.mercadopago.com/v1/payments', {
+            method: 'POST',
+            headers: {
+                'Authorization': 'Bearer APP_USR-5618686292201744-020411-c7aff1bf1794ccfb9972bd03f7fd1fd8-214430495',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                transaction_amount: 10.00,
+                payment_method_id: 'pix',
+                payer: { email: document.getElementById('email').value }
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('pixQR').src = `data:image/png;base64,${data.point_of_interaction.transaction_data.qr_code_base64}`;
+            document.getElementById('pixQR').style.display = 'block';
+            document.getElementById('pixCode').innerText = `Código Pix: ${data.point_of_interaction.transaction_data.qr_code}`;
+            document.getElementById('pixCode').style.display = 'block';
+        })
+        .catch(error => console.error('Erro ao gerar QR Code:', error));
+    }
+
+    function confirmPayment() {
+        let fullName = document.getElementById('fullName').value;
+        let phone = document.getElementById('phone').value;
+        let email = document.getElementById('email').value;
+        let paymentMethod = document.getElementById('paymentMethod').value;
+
+        if (!fullName || !phone || !email || !paymentMethod) {
+            alert("Por favor, preencha todos os campos corretamente.");
+            return;
+        }
+
+        localStorage.setItem('fullName', fullName);
+        localStorage.setItem('phone', phone);
+        localStorage.setItem('email', email);
+        localStorage.setItem('paymentMethod', paymentMethod);
+        window.location.href = 'confirmation.html';
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rifas - Paiva Prêmios</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        body {
+            background-color: #cdffc1;
+            color: #333;
+            text-align: center;
+            padding: 20px;
+        }
+        header {
+            background: #000;
+            color: white;
+            padding: 15px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: #cdffc1(75, 238, 11);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        .banner {
+            width: 100%;
+            height: 250px;
+            background: src="http://localhost/paivapremios/wp-content/themes/paivapremios/images/rifa3.jpg" alt="Rifa do iPhone 15">
+            background-size: cover;
+            border-radius: 8px;
+        }
+        .description {
+            font-size: 18px;
+            margin: 20px 0;
+        }
+        .btn {
+            display: inline-block;
+            background: #008000;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background: #006400;
+        }
+        .number-selection {
+            margin: 20px 0;
+        }
+        .option-buttons {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .option-buttons button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            background: #ddd;
+            cursor: pointer;
+        }
+        .option-buttons button:hover {
+            background: #bbb;
+        }
+        .quantity-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .quantity-controls input {
+            padding: 10px;
+            font-size: 16px;
+            width: 80px;
+            text-align: center;
+        }
+        .quantity-controls button {
+            padding: 10px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            background: #444;
+            color: white;
+            cursor: pointer;
+        }
+        .quantity-controls button:hover {
+            background: #222;
+        }
+        .confirmation-modal {
+            display: none;
+            background: rgba(0, 0, 0, 0.5);
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 18px;
+        }
+        .confirmation-modal .modal-content {
+            background: #333;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            width: 300px;
+        }
+        .modal-content button {
+            margin-top: 20px;
+            background-color: #008000;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .modal-content button:hover {
+            background-color: #006400;
+        }
+    </style>
+</head>
+<body>
+    <header>Paiva Prêmios</header>
+    <div class="container">
+        <div class="banner">
+            <img class="imagem-campanha" src="C:\Meus Sites\images\rifa3.jpg" alt="Rifa do iPhone 15">
+        </div>
+        <h1>Participe da Rifa - PlayStation 5</h1>
+        <p class="description">Garanta já sua participação e concorra a um PlayStation 5!</p>
+        
+        <div class="number-selection">
+            <label for="quantity">Escolha a quantidade de números:</label>
+            <div class="option-buttons">
+                <button onclick="addQuantity(25)">+25 BILHETES</button>
+                <button onclick="addQuantity(50)">+50 BILHETES</button>
+                <button onclick="addQuantity(100)">+100 BILHETES</button>
+                <button onclick="addQuantity(200)">+200 BILHETES</button>
+            </div>
+            <div class="quantity-controls">
+                <button onclick="changeQuantity(-1)">-</button>
+                <input type="number" id="quantity" min="0" value="0">
+                <button onclick="changeQuantity(1)">+</button>
+            </div>
+            <a href="#" class="btn" onclick="confirmPurchase()">Comprar Agora</a>
+        </div>
+    </div>
+
+    <div class="confirmation-modal" id="confirmationModal">
+        <div class="modal-content">
+            <p id="confirmationMessage">Você escolheu comprar 0 número(s)!</p>
+            <button onclick="redirectToPayment()">Confirme</button>
+        </div>
+    </div>
+
+    <script>
+        function addQuantity(num) {
+            let input = document.getElementById('quantity');
+            input.value = parseInt(input.value) + num;
+        }
+
+        function changeQuantity(num) {
+            let input = document.getElementById('quantity');
+            let newValue = parseInt(input.value) + num;
+            input.value = newValue < 0 ? 0 : newValue;
+        }
+
+        function generateRandomNumbers(quantity) {
+            let numbers = new Set();  // Usando Set para garantir que não haja duplicatas
+
+            while (numbers.size < quantity) {
+                let randomNumber = Math.floor(Math.random() * (9999 - 1000 + 1)) + 1000;
+                numbers.add(randomNumber);
+            }
+
+            return Array.from(numbers);  // Convertendo Set de volta para um Array
+        }
+
+        function confirmPurchase() {
+            let quantity = document.getElementById('quantity').value;
+            if (quantity <= 0) {
+                alert('Por favor, selecione uma quantidade válida de números.');
+                return;
+            }
+
+            let numbers = generateRandomNumbers(parseInt(quantity));  // Gerando números aleatórios
+            localStorage.setItem('selectedNumbers', JSON.stringify(numbers));  // Salvando os números na localStorage
+
+            document.getElementById('confirmationMessage').textContent = `Você escolheu comprar ${quantity} número(s)!`;
+            document.getElementById('confirmationModal').style.display = 'flex';
+        }
+
+        function redirectToPayment() {
+            window.location.href = 'payment.html';  // Redireciona para a página de pagamento
+        }
+    </script>
+</body>
+</html>
