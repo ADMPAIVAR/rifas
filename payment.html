@@ -58,11 +58,11 @@
             border: 1px solid #ccc;
         }
         .payment-section {
-            display: none;
+            display: block; /* Agora ficará visível sempre */
             margin-top: 10px;
         }
         #pixQR, #pixCode {
-            display: none;
+            display: block; /* Mostrar o QR Code assim que for gerado */
             margin-top: 10px;
         }
     </style>
@@ -80,26 +80,15 @@
     <input type="tel" id="phone" placeholder="Telefone (xx)xxxxx-xxxx" required>
     <input type="email" id="email" placeholder="Endereço de E-mail" required>
     
-    <select id="paymentMethod" onchange="togglePaymentFields()">
-        <option value="">Selecione o Método de Pagamento</option>
-        <option value="pix">Pix</option>
-    </select>
-
-    <div id="pixSection" class="payment-section">
+    <!-- A opção de seleção de método de pagamento foi removida -->
+    <div class="payment-section">
         <button class="button button-green" onclick="generatePix()">Gerar QR Code Pix</button>
-        <img id="pixQR" src="" alt="QR Code Pix">
-        <p id="pixCode"></p>
+        <img id="pixQR" src="" alt="QR Code Pix" style="display:none;">
+        <p id="pixCode" style="display:none;"></p>
     </div>
-
-    <button class="button button-green" onclick="confirmPayment()">Confirmar Pagamento</button>
 </div>
 
 <script>
-    function togglePaymentFields() {
-        let method = document.getElementById('paymentMethod').value;
-        document.getElementById('pixSection').style.display = method === 'pix' ? 'block' : 'none';
-    }
-
     function generatePix() {
         fetch('https://api.mercadopago.com/v1/payments', {
             method: 'POST',
@@ -108,37 +97,41 @@
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                transaction_amount: 10.00,
+                transaction_amount: 10.00, // O valor pode ser alterado conforme necessário
                 payment_method_id: 'pix',
                 payer: { email: document.getElementById('email').value }
             })
         })
         .then(response => response.json())
         .then(data => {
+            // Exibe o QR Code e o código Pix gerado
             document.getElementById('pixQR').src = `data:image/png;base64,${data.point_of_interaction.transaction_data.qr_code_base64}`;
             document.getElementById('pixQR').style.display = 'block';
             document.getElementById('pixCode').innerText = `Código Pix: ${data.point_of_interaction.transaction_data.qr_code}`;
             document.getElementById('pixCode').style.display = 'block';
+
+            // Aguardar a confirmação do pagamento do Mercado Pago
+            setInterval(checkPaymentStatus, 5000);  // Verifica a cada 5 segundos
         })
         .catch(error => console.error('Erro ao gerar QR Code:', error));
     }
 
-    function confirmPayment() {
-        let fullName = document.getElementById('fullName').value;
-        let phone = document.getElementById('phone').value;
-        let email = document.getElementById('email').value;
-        let paymentMethod = document.getElementById('paymentMethod').value;
-
-        if (!fullName || !phone || !email || !paymentMethod) {
-            alert("Por favor, preencha todos os campos corretamente.");
-            return;
-        }
-
-        localStorage.setItem('fullName', fullName);
-        localStorage.setItem('phone', phone);
-        localStorage.setItem('email', email);
-        localStorage.setItem('paymentMethod', paymentMethod);
-        window.location.href = 'confirmation.html';
+    // Função para verificar o status do pagamento
+    function checkPaymentStatus() {
+        fetch('https://api.mercadopago.com/v1/payments/{payment_id}', {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Bearer YOUR_ACCESS_TOKEN',  // Substitua pelo seu token
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'approved') {
+                // Pagamento confirmado, redireciona para a página de confirmação
+                window.location.href = 'confirmation.html';
+            }
+        })
+        .catch(error => console.error('Erro ao verificar status do pagamento:', error));
     }
 </script>
 
