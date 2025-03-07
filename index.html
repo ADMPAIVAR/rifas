@@ -134,6 +134,11 @@
         .modal-content button:hover {
             background-color: #006400;
         }
+        .price-display {
+            font-size: 18px;
+            margin-top: 10px;
+            color: #008000;  /* Cor verde para destacar o preço */
+        }
     </style>
 </head>
 <body>
@@ -150,13 +155,17 @@
             <div class="option-buttons">
                 <button onclick="addQuantity(25)">+25 BILHETES</button>
                 <button onclick="addQuantity(50)">+50 BILHETES</button>
+                
                 <button onclick="addQuantity(100)">+100 BILHETES</button>
                 <button onclick="addQuantity(200)">+200 BILHETES</button>
             </div>
             <div class="quantity-controls">
                 <button onclick="changeQuantity(-1)">-</button>
-                <input type="number" id="quantity" min="0" value="0">
+                <input type="number" id="quantity" min="0" value="0" oninput="updatePrice()">
                 <button onclick="changeQuantity(1)">+</button>
+            </div>
+            <div id="priceDisplay" class="price-display">
+                <p>Quantidade: <span id="quantityDisplay">0</span> - Valor: R$ <span id="priceAmount">0,00</span></p>
             </div>
             <a href="#" class="btn" onclick="confirmPurchase()">Comprar Agora</a>
         </div>
@@ -170,15 +179,29 @@
     </div>
 
     <script>
+        let totalQuantity = 0;  // Variável global para armazenar a quantidade total
+        const pricePerTicket = 10;  // Preço por bilhete
+
+        function updatePrice() {
+            let quantity = totalQuantity;  // Usando a variável global
+            let totalPrice = quantity * pricePerTicket;
+
+            // Atualizando a quantidade e o valor exibido
+            document.getElementById('quantityDisplay').textContent = quantity;
+            document.getElementById('priceAmount').textContent = totalPrice.toFixed(2).replace('.', ',');
+        }
+
         function addQuantity(num) {
-            let input = document.getElementById('quantity');
-            input.value = parseInt(input.value) + num;
+            totalQuantity += num;  // Acumulando a quantidade
+            document.getElementById('quantity').value = totalQuantity;  // Atualizando o input
+            updatePrice();  // Atualiza o preço
         }
 
         function changeQuantity(num) {
-            let input = document.getElementById('quantity');
-            let newValue = parseInt(input.value) + num;
-            input.value = newValue < 0 ? 0 : newValue;
+            totalQuantity += num;  // Acumulando a quantidade
+            if (totalQuantity < 0) totalQuantity = 0;  // Evita quantidade negativa
+            document.getElementById('quantity').value = totalQuantity;  // Atualiza o input
+            updatePrice();  // Atualiza o preço
         }
 
         function generateRandomNumbers(quantity) {
@@ -193,7 +216,7 @@
         }
 
         function confirmPurchase() {
-            let quantity = document.getElementById('quantity').value;
+            let quantity = totalQuantity;
             if (quantity <= 0) {
                 alert('Por favor, selecione uma quantidade válida de números.');
                 return;
@@ -201,6 +224,9 @@
 
             let numbers = generateRandomNumbers(parseInt(quantity));  // Gerando números aleatórios
             localStorage.setItem('selectedNumbers', JSON.stringify(numbers));  // Salvando os números na localStorage
+
+            let totalValue = quantity * pricePerTicket;  // Calculando o valor total
+            localStorage.setItem('totalValue', totalValue);  // Salvando o valor total
 
             document.getElementById('confirmationMessage').textContent = `Você escolheu comprar ${quantity} número(s)!`;
             document.getElementById('confirmationModal').style.display = 'flex';
